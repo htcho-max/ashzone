@@ -32,6 +32,11 @@ input[type=range]{width:200px;vertical-align:middle;accent-color:#c0502a}
 .stats{font-size:17px;line-height:1.9;margin:4px 0 18px}
 .stats b{color:#ffb070}
 #best{margin-top:14px;font-size:13px;opacity:.65}
+.maps{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:0 0 16px}
+.mapc{flex:1 1 150px;max-width:180px;padding:10px 12px;border-radius:8px;border:2px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);cursor:pointer;text-align:left;color:inherit;font:inherit;min-width:0;margin:0}
+.mapc:hover{background:rgba(255,255,255,.08)}
+.mapc.on{border-color:#d0603a;background:rgba(208,96,58,.16)}
+.mapc .n{font-weight:800;font-size:15px}.mapc .d{font-size:12px;opacity:.72;margin-top:4px;line-height:1.45;font-weight:400}.mapc .r{font-size:11.5px;opacity:.6;margin-top:6px;font-weight:400}
 .wide{max-width:640px;max-height:92vh;overflow:auto;background:rgba(14,10,9,.95);border:1px solid rgba(255,140,90,.18);border-radius:12px;padding:16px 18px;box-sizing:border-box}
 .row{display:flex;align-items:center;justify-content:space-between;gap:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:9px 12px;margin:7px 0;text-align:left}
 .row .t{font-size:16px;font-weight:700}.row .d{font-size:12.5px;opacity:.7;margin-top:2px}
@@ -49,14 +54,15 @@ button:disabled{opacity:.32;cursor:default}
   <div class="panel">
     <h1>잿빛 구역</h1>
     <p class="sub">낮에는 폐허를 뒤져 고철을 모으고 방어선을 세워라. 밤이 오면 변이체가 몰려온다.</p>
+    <div id="mapSel" class="maps"></div>
     <button id="btnStart">시작하기</button>
-    <div class="help"><b>PC</b> WASD 이동 · 마우스 조준 · 클릭 사격 · R 재장전 · 1~5/Q 무기 교체 · Shift 달리기<br>E 작업대(낮) · F 바리케이드 설치·수리 · G 가시 함정 · N 바로 밤 시작 · M 지도 · Esc 일시정지</div>
+    <div class="help"><b>PC</b> WASD 이동 · 마우스 조준 · 클릭 사격 · R 재장전 · 1~5/Q 무기 교체 · Shift 달리기<br>E 작업대·봉쇄문(낮) · F 바리케이드 설치·수리 · G 가시 함정 · N 바로 밤 시작 · M 지도 · Esc 일시정지</div>
     <div class="help"><b>태블릿</b> 왼쪽 드래그 이동(끝까지 밀면 달리기) · 오른쪽 드래그 조준 · 사격 버튼을 누른 채 드래그해도 조준 · 벽/함정 버튼으로 설치 · 작업대 근처에서 작업대 버튼</div>
     <label>시점 감도 <input type="range" id="sens1" min="0.4" max="2.5" step="0.1"></label>
     <div id="best"></div>
     <button id="btnInstall" class="sec hidden">앱으로 설치</button>
     <div id="iosHint" class="help hidden">iPad·iPhone: Safari의 공유 버튼 → <b>홈 화면에 추가</b>를 누르면 앱처럼 전체 화면으로 할 수 있어요.</div>
-    <div style="margin-top:10px;font-size:11px;opacity:.4">v0.4</div>
+    <div style="margin-top:10px;font-size:11px;opacity:.4">v0.5</div>
   </div>
 </div>
 
@@ -247,6 +253,37 @@ function planks(dmg) {
   });
 }
 WALLS.push(planks(false), planks(true));
+// 6: 봉쇄문 (grid 7)
+WALLS.push(makeTex(64, 64, (g, w, h) => {
+  const R = rng(61);
+  for (let y = 0; y < 64; y += 4) { g.fillStyle = (y / 4) % 2 ? '#47464a' : '#55545a'; g.fillRect(0, y, 64, 4); g.fillStyle = 'rgba(0,0,0,.4)'; g.fillRect(0, y + 3, 64, 1); g.fillStyle = 'rgba(255,255,255,.07)'; g.fillRect(0, y, 64, 1); }
+  speck(g, R, w, h, 500, ['rgba(120,55,20,.45)', 'rgba(0,0,0,.3)', 'rgba(160,80,30,.3)']);
+  drip(g, R, 10, 'rgba(120,55,20,.6)', w);
+  g.fillStyle = '#c89a1a'; g.fillRect(0, 44, 64, 9);
+  g.fillStyle = '#16161a'; for (let x = -12; x < 72; x += 10) { g.beginPath(); g.moveTo(x, 44); g.lineTo(x + 5, 44); g.lineTo(x - 4, 53); g.lineTo(x - 9, 53); g.fill(); }
+  g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(0, 53, 64, 1);
+  g.strokeStyle = '#a8a8a4'; g.lineWidth = 1.2;
+  for (let i = 0; i < 12; i++) { const x = 6 + i * 4.4, y = 24 + Math.sin(i / 11 * Math.PI) * 6; g.beginPath(); g.ellipse(x, y, 2.2, 1.3, i % 2 ? 0 : 1.2, 0, TAU); g.stroke(); }
+  g.fillStyle = '#7a6a28'; g.fillRect(28, 28, 9, 9); g.strokeStyle = '#b0b0a8'; g.lineWidth = 1.5; g.beginPath(); g.arc(32.5, 28, 3, Math.PI, 0); g.stroke();
+  g.fillStyle = '#111'; g.fillRect(32, 31, 1.5, 3);
+  g.fillStyle = '#2a2a2e'; g.fillRect(0, 0, 3, 64); g.fillRect(61, 0, 3, 64);
+}));
+// 7: 역사 타일 벽 (grid 8)
+WALLS.push(makeTex(64, 64, (g, w, h) => {
+  const R = rng(77);
+  g.fillStyle = '#34332f'; g.fillRect(0, 0, 64, 64);
+  for (let y = 0; y < 64; y += 8) for (let x = 0; x < 64; x += 8) {
+    if (R() < 0.04) continue;
+    g.fillStyle = `hsl(48,${8 + R() * 6}%,${54 + R() * 12}%)`; g.fillRect(x + 1, y + 1, 7, 7);
+    g.fillStyle = 'rgba(255,255,255,.12)'; g.fillRect(x + 1, y + 1, 7, 1);
+  }
+  g.fillStyle = '#2c6e44'; g.fillRect(0, 24, 64, 8); g.fillStyle = 'rgba(255,255,255,.15)'; g.fillRect(0, 24, 64, 1);
+  drip(g, R, 14, 'rgba(30,26,20,.55)', w);
+  speck(g, R, w, h, 400, ['rgba(0,0,0,.25)', 'rgba(60,50,30,.3)']);
+  crack(g, R, 44, 2, 9, 'rgba(0,0,0,.6)');
+  const gr = g.createLinearGradient(0, 40, 0, 64); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(20,16,10,.65)');
+  g.fillStyle = gr; g.fillRect(0, 40, 64, 24);
+}));
 
 const FLOOR = makeTex(64, 64, (g, w, h) => {
   const R = rng(71);
@@ -298,6 +335,32 @@ const SKY = makeTex(1024, 128, (g, w, h) => {
   }
 });
 
+const FLOOR_OIL = makeTex(64, 64, (g, w, h) => {
+  const R = rng(91);
+  g.fillStyle = '#383734'; g.fillRect(0, 0, w, h);
+  speck(g, R, w, h, 1200, ['#33322f', '#403f3b', '#2c2b29', '#45433e']);
+  g.fillStyle = 'rgba(0,0,0,.5)'; g.fillRect(0, 0, 64, 1); g.fillRect(0, 0, 1, 64);
+  for (let i = 0; i < 3; i++) { g.fillStyle = 'rgba(12,10,14,.55)'; g.beginPath(); g.ellipse(10 + R() * 44, 10 + R() * 44, 5 + R() * 9, 3 + R() * 6, R() * 3, 0, TAU); g.fill(); }
+  g.fillStyle = 'rgba(200,160,30,.18)'; g.fillRect(40, 50, 6, 3); g.fillRect(12, 8, 3, 2);
+  crack(g, R, 20, 0, 10, 'rgba(0,0,0,.6)');
+});
+const FLOOR_TILE = makeTex(64, 64, (g, w, h) => {
+  const R = rng(93);
+  g.fillStyle = '#2a2925'; g.fillRect(0, 0, w, h);
+  for (let y = 0; y < 64; y += 16) for (let x = 0; x < 64; x += 16) { g.fillStyle = ((x + y) / 16) % 2 ? '#56534b' : '#47443d'; g.fillRect(x + 1, y + 1, 15, 15); }
+  speck(g, R, w, h, 700, ['rgba(0,0,0,.25)', 'rgba(90,80,60,.25)', 'rgba(255,255,255,.05)']);
+  g.fillStyle = 'rgba(25,20,15,.45)'; g.beginPath(); g.ellipse(40, 22, 12, 6, 0.4, 0, TAU); g.fill();
+  crack(g, R, 12, 30, 7, 'rgba(0,0,0,.55)');
+});
+const CEIL = makeTex(64, 64, (g, w, h) => {
+  const R = rng(95);
+  g.fillStyle = '#262523'; g.fillRect(0, 0, w, h);
+  speck(g, R, w, h, 600, ['#22211f', '#2c2b28', '#1c1b1a']);
+  g.fillStyle = 'rgba(0,0,0,.5)'; g.fillRect(0, 0, 64, 2); g.fillRect(0, 0, 2, 64);
+  g.fillStyle = '#7a7666'; g.fillRect(24, 28, 16, 8); g.fillStyle = '#d8d2b0'; g.fillRect(26, 30, 12, 4);
+  drip(g, R, 6, 'rgba(10,10,10,.5)', w);
+});
+const FLOORS = { asphalt: FLOOR, oil: FLOOR_OIL, tile: FLOOR_TILE };
 const SKY_DAY = makeTex(1024, 128, (g, w, h) => {
   const R = rng(131);
   const gr = g.createLinearGradient(0, 0, 0, h);
@@ -505,48 +568,43 @@ SPR.blood = makeTex(16, 16, g => {
 });
 
 // ---------- 맵 ----------
-const MAP = [
-  '########################',
-  '#S.....#.....CC.......S#',
-  '#......#.....CC........#',
-  '#..MM..#...........RR..#',
-  '#..MM..............RR..#',
-  '#......................#',
-  '###..#####....###......#',
-  '#........#....#........#',
-  '#........#....#...CCC..#',
-  '#..RR..........P..C....#',
-  '#..RR.............C....#',
-  '#.......CC.............#',
-  '#.......CC.....MMM.....#',
-  '#S.....................#',
-  '#......####.......##...#',
-  '#......#..........##...#',
-  '#..CC..#..RR...........#',
-  '#..CC.....RR.....M.....#',
-  '#................M....S#',
-  '####...######....M.....#',
-  '#......#...............#',
-  '#......#....CC.....RR..#',
-  '#S.....#....CC.....RR.S#',
-  '########################'
+const MAPDEFS = [
+  { id: "city", name: "잿빛 시가지", desc: "무너진 도심 블록. 골목이 많아 방어선을 짜기 좋다", wall: 1, floor: "asphalt", indoor: false, rows: ["################################", "#S.....#.....CC..S..#.........S#", "#......#.....CC.....#..........#", "#..MM..#............a....RR....#", "#..MM...............a....RR....#", "#...................#..........#", "###..#####....###...#..##...CC.#", "#........#....#.....#..##...CC.#", "#........#...B#...CC#..........#", "#..RR..........P..C.#.S..MM....#", "#..RR.............C.#.....M...S#", "#.......CC..........############", "#.......CC.....MMM..#..........#", "#S..................#..CC...RR.#", "#......####.......###..CC...RR.#", "#......#..........###..........#", "#..CC..#..RR........#S.........#", "#..CC.....RR.....M..b....MMM...#", "#................M..b..........#", "####...######....M..#..##....S.#", "#......#............#..##......#", "#......#....CC......#.......CC.#", "#S.....#....CC......#S......CC.#", "################################"] },
+  { id: "factory", name: "녹슨 공장", desc: "넓은 공장 마당. 시야는 트였지만 막을 곳이 적다", wall: 3, floor: "oil", indoor: false, rows: ["################################", "#S............S.#S............S#", "#.......MMMMMM..#...........RR.#", "#..MMM..........#..RRR.........#", "#..MMM..........#..RRR.........#", "#...............#........MMM...#", "#........RRR....#........MMM...#", "#........RRR....#........MMM...#", "#..CC...........#...CCC........#", "#..CC.......MM..#...CCC........#", "#S..........MM..#.......MM....S#", "#...............#..............#", "######aa################bb######", "#..............................#", "#S............MM..............S#", "#...MMM.............RRRR...C...#", "#...MMM......B......RRRR.......#", "#..............................#", "#.........RRR..................#", "#.........RRR.....C........C...#", "#..MMM....RRR..P..C............#", "#S............................S#", "#..............................#", "################################"] },
+  { id: "station", name: "지하 환승역", desc: "어두운 실내 역사. 기둥 사이로 놈들이 쏟아진다", wall: 8, floor: "tile", indoor: true, rows: ["################################", "#S.......#.S........S.#.......S#", "#........#............#........#", "#....C...#............#...C....#", "#....C...#..C......C..#...C....#", "#....C.C.#............#.C.C....#", "#....C...#............#...C....#", "#....C...#...MM..MM...#...C....#", "#....C...#............#...C....#", "#....C.C.#..C......C..#.C.C....#", "#........#............#........#", "#........a............b........#", "#S.......a.....P.B....b.......S#", "#........#............#........#", "#....C.C.#............#.C.C....#", "#....C...#..C......C..#...C....#", "#....C...#............#...C....#", "#....C...#.....RR.....#...C....#", "#....C.C.#.....RR.....#.C.C....#", "#....C...#..C......C..#...C....#", "#....C...#............#...C....#", "#........#............#........#", "#S.......#.S........S.#.......S#", "################################"] }
 ];
-const MW = MAP[0].length, MH = MAP.length;
-const grid = new Uint8Array(MW * MH);
-const SPAWNS = []; let START = { x: 12, y: 12 };
-const TEXMAP = { '#': 1, 'C': 2, 'M': 3, 'R': 4 };
-for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) {
-  const ch = MAP[y][x];
-  grid[y * MW + x] = TEXMAP[ch] || 0;
-  if (ch === 'S') SPAWNS.push({ x: x + 0.5, y: y + 0.5 });
-  if (ch === 'P') START = { x: x + 0.5, y: y + 0.5 };
+const MW = 32, MH = 24;
+const grid = new Uint8Array(MW * MH), baseGrid = new Uint8Array(MW * MH);
+const zoneOf = new Int8Array(MW * MH), gateZone = new Int8Array(MW * MH);
+const SPAWNS = [], START = { x: 15.5, y: 9.5 }, WB = { x: 13.5, y: 8.5 };
+const SPAWN_SET = new Set();
+let WB_I = 0, MAPDEF = MAPDEFS[0], CUR_FLOOR = FLOOR;
+let mapIdx = clamp(load('ashzone.map', 0) | 0, 0, MAPDEFS.length - 1);
+const GATE_COST = { 2: 12, 3: 20 }, GATE_AUTO = { 2: 5, 3: 8 };
+function loadMap(mi) {
+  MAPDEF = MAPDEFS[mi]; mapIdx = mi; CUR_FLOOR = FLOORS[MAPDEF.floor];
+  SPAWNS.length = 0; SPAWN_SET.clear(); zoneOf.fill(0); gateZone.fill(0);
+  const tm = { '#': MAPDEF.wall, C: 2, M: 3, R: 4, T: 8 };
+  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) {
+    const ch = MAPDEF.rows[y][x], i = y * MW + x;
+    let v = tm[ch] || 0;
+    if (ch === 'a' || ch === 'b') { v = 7; gateZone[i] = ch === 'a' ? 2 : 3; }
+    grid[i] = v;
+    if (ch === 'S') SPAWNS.push({ x: x + 0.5, y: y + 0.5, i, z: 1 });
+    if (ch === 'P') { START.x = x + 0.5; START.y = y + 0.5; }
+    if (ch === 'B') { WB.x = x + 0.5; WB.y = y + 0.5; WB_I = i; }
+  }
+  baseGrid.set(grid);
+  const q = [], fill = (z) => { while (q.length) { const i = q.pop(), x = i % MW, y = (i / MW) | 0;
+    for (const n of [x > 0 ? i - 1 : -1, x < MW - 1 ? i + 1 : -1, y > 0 ? i - MW : -1, y < MH - 1 ? i + MW : -1]) if (n >= 0 && !grid[n] && !zoneOf[n]) { zoneOf[n] = z; q.push(n); } } };
+  const si = Math.floor(START.y) * MW + Math.floor(START.x); zoneOf[si] = 1; q.push(si); fill(1);
+  for (const z of [2, 3]) { for (let i = 0; i < MW * MH; i++) if (gateZone[i] === z) { zoneOf[i] = z; q.push(i); } fill(z); }
+  for (const sp of SPAWNS) { sp.z = zoneOf[sp.i] || 1; SPAWN_SET.add(sp.i); }
 }
-const baseGrid = grid.slice();
+loadMap(mapIdx);
 const barHp = new Float32Array(MW * MH);
-const SPAWN_SET = new Set(SPAWNS.map(s => Math.floor(s.y) * MW + Math.floor(s.x)));
 const BAR_HP = 160;
 let flowDirty = true;
-const WB = { x: 13.5, y: 8.5 }, WB_I = 8 * MW + 13;
 function josa(w, a, b) { const c = w.charCodeAt(w.length - 1); return w + (c >= 0xAC00 && c <= 0xD7A3 && (c - 0xAC00) % 28 ? a : b); }
 function isBar(i) { return grid[i] === 5 || grid[i] === 6; }
 function solid(x, y) {
@@ -602,7 +660,7 @@ function updateFlow(force) {
       const nx = x + NDX[k], ny = y + NDY[k];
       if (nx < 0 || ny < 0 || nx >= MW || ny >= MH) continue;
       const ni = ny * MW + nx, gv = grid[ni];
-      if (gv && gv < 5) continue;
+      if (gv && gv !== 5 && gv !== 6) continue;
       const nd = base + (gv ? 12 : 1);
       if (flow[ni] < 0 || nd < flow[ni]) {
         flow[ni] = nd;
@@ -699,6 +757,7 @@ const SFX = {
       o.connect(fl).connect(g).connect(out(pan)); o.start(t); o.stop(t + 1.8); }
     noiseHit(t, 1.4, 350, 'bandpass', 0.35 * v, pan, 1.5);
   },
+  gate() { const t = AC.currentTime; noiseHit(t, 1.3, 500, 'lowpass', 0.9); tone(t, 1.2, 70, 38, 'sawtooth', 0.25, 0, 300); noiseHit(t + 0.1, 0.9, 2200, 'bandpass', 0.15, 0, 4); noiseHit(t + 1.25, 0.12, 3000, 'highpass', 0.5); tone(t + 1.25, 0.2, 180, 90, 'square', 0.12, 0, 900); },
   buy() { const t = AC.currentTime; for (const [k, f] of [[0, 523], [0.08, 659], [0.16, 784], [0.24, 1046]]) tone(t + k, 0.12, f, f, 'triangle', 0.22); noiseHit(t, 0.08, 3000, 'highpass', 0.2); },
   heartbeat() { const t = AC.currentTime; tone(t, 0.12, 60, 40, 'sine', 0.6); tone(t + 0.18, 0.12, 55, 38, 'sine', 0.45); }
 };
@@ -746,16 +805,17 @@ const ENEMY = {
 let state = 'title';
 let P, enemies, pickups, fx, W, msgs, stats, time = 0, traps = [], shots = [], hurtDirs = [], nades = [];
 let sens = load('ashzone.sens', 1);
-let best = load('ashzone.best', { wave: 0, kills: 0 });
+function bestOf(id) { return load('ashzone.best.' + id, id === 'city' ? load('ashzone.best', { wave: 0, kills: 0 }) : { wave: 0, kills: 0 }); }
 let showMap = true;
 
 function newGame() {
+  loadMap(mapIdx);
   P = { x: START.x, y: START.y, a: -Math.PI / 2, hp: 100, st: 100, mag: 12, rmag: 30, own: [true, false, false, false, false], lvl: [1, 1, 1, 1, 1], ammo: { shells: 0, rifle: 0, nade: 0, fuel: 0 }, spray: 0, flameT: 0, flameSnd: 0, boom: 0, cur: 0,
     fireCd: 0, reloadT: 0, recoil: 0, flash: 0, pumpT: 0, switchT: 0, bob: 0, bobAmt: 0, hurt: 0, shake: 0, dead: false, deadT: 0, beatT: 0, scrap: 6 };
   enemies = []; pickups = []; fx = []; msgs = []; traps = []; shots = []; hurtDirs = []; toasts = []; nades = [];
   stats = { kills: 0, score: 0, shots: 0, hits: 0, bosses: 0 };
   grid.set(baseGrid); barHp.fill(0);
-  W = { day: 1, phase: 'day', t: 55, n: 0, toSpawn: 0, spawnT: 0, maxAlive: 6, strayT: 30, fade: 0, fadeTo: null, bossT: 0 };
+  W = { day: 1, phase: 'day', t: 55, n: 0, toSpawn: 0, spawnT: 0, maxAlive: 6, strayT: 30, fade: 0, fadeTo: null, bossT: 0, open: [false, true, false, false] };
   flowCell = -1; updateFlow(true);
   time = 0;
   startDay(true);
@@ -769,6 +829,44 @@ function startDay(first) {
   W.phase = 'day'; W.t = first ? 55 : 60; W.strayT = first ? 30 : rand(12, 20);
   spawnCrates(first ? 5 : 3 + Math.min(4, W.day));
   showMsg(`${W.day}일째 낮`, first ? '상자를 뒤져 고철을 모으고 방어선을 세워라' : '해가 떴다 · 상자를 뒤지고 방어선을 정비하라', 3.4);
+  for (const z of [2, 3]) if (!W.open[z] && W.day >= GATE_AUTO[z]) { openZone(z, true); break; }
+}
+function openZone(z, auto) {
+  if (W.open[z]) return;
+  W.open[z] = true;
+  for (let i = 0; i < MW * MH; i++) if (gateZone[i] === z) grid[i] = 0;
+  flowDirty = true;
+  const cells = [];
+  for (let i = 0; i < MW * MH; i++) if (zoneOf[i] === z && !grid[i] && !SPAWN_SET.has(i) && !gateZone[i]) cells.push(i);
+  for (let k = cells.length - 1; k > 0; k--) { const j = (Math.random() * (k + 1)) | 0; [cells[k], cells[j]] = [cells[j], cells[k]]; }
+  const loot = ['crate', 'crate', 'crate', 'crate', 'medkit'];
+  if (ammoWeapons().length) loot.push('ammo');
+  for (const i of cells) {
+    if (!loot.length) break;
+    const x = i % MW + 0.5, y = ((i / MW) | 0) + 0.5;
+    if (pickups.some(p => Math.hypot(p.x - x, p.y - y) < 2)) continue;
+    addPickup(loot.pop(), x, y);
+  }
+  sfx('gate'); P.shake = Math.max(P.shake, 0.3);
+  showMsg(auto ? '놈들이 봉쇄문을 부쉈다' : `구역 ${z} 개방`, auto ? `구역 ${z}가 열렸다 · 놈들이 들어오는 길이 늘었다` : '새 구역에 보급품이 있다 · 놈들이 들어오는 길도 늘었다', 3.4);
+}
+function gateAhead() {
+  if (!P) return 0;
+  const dx = Math.cos(P.a), dy = Math.sin(P.a);
+  for (const t of [0.6, 1.1, 1.6]) {
+    const x = Math.floor(P.x + dx * t), y = Math.floor(P.y + dy * t);
+    if (x < 0 || y < 0 || x >= MW || y >= MH) return 0;
+    const i = y * MW + x;
+    if (grid[i] === 7) return gateZone[i];
+    if (grid[i]) return 0;
+  }
+  return 0;
+}
+function tryOpenGate(z) {
+  const cost = GATE_COST[z];
+  if (W.phase !== 'day') { toast('봉쇄문은 낮에만 열 수 있다'); sfx('dry'); return; }
+  if (P.scrap < cost) { toast(`고철 ${cost}개 필요`); sfx('dry'); return; }
+  P.scrap -= cost; openZone(z, false);
 }
 function beginNight() {
   if (W.phase !== 'day' || W.fade > 0) return;
@@ -798,8 +896,9 @@ function pickKind() {
   return Math.random() < runnerShare ? 'runner' : 'shambler';
 }
 function spawnEnemy(forceKind) {
-  let cands = SPAWNS.filter(s => Math.hypot(s.x - P.x, s.y - P.y) > 7);
-  if (!cands.length) cands = SPAWNS;
+  const act = SPAWNS.filter(s => W.open[s.z]);
+  let cands = act.filter(s => Math.hypot(s.x - P.x, s.y - P.y) > 7);
+  if (!cands.length) cands = act;
   const hidden = cands.filter(s => !lineClear(P.x, P.y, s.x, s.y));
   const pool = hidden.length ? hidden : cands;
   const s = pool[(Math.random() * pool.length) | 0];
@@ -1097,6 +1196,11 @@ function nextWeapon(dir) {
   for (let k = 1; k <= WEAPONS.length; k++) { const i = (P.cur + dir * k + WEAPONS.length * 2) % WEAPONS.length; if (P.own[i]) { switchWeapon(i); return; } }
 }
 function nearBench() { return Math.hypot(P.x - WB.x, P.y - WB.y) < 1.5; }
+function interact() {
+  if (!P || P.dead) return;
+  if (nearBench()) { useBench(); return; }
+  const z = gateAhead(); if (z) tryOpenGate(z);
+}
 function useBench() {
   if (!nearBench() || P.dead) return;
   if (W.phase !== 'day') { toast('밤에는 작업대를 쓸 수 없다'); sfx('dry'); return; }
@@ -1112,7 +1216,7 @@ addEventListener('keydown', e => {
     if (e.code === 'KeyR') startReload();
     if (/^Digit[1-5]$/.test(e.code)) switchWeapon(+e.code[5] - 1);
     if (e.code === 'KeyQ') nextWeapon(1);
-    if (e.code === 'KeyE') useBench();
+    if (e.code === 'KeyE') interact();
     if (e.code === 'KeyM') showMap = !showMap;
     if (e.code === 'KeyF') build('bar');
     if (e.code === 'KeyG') build('trap');
@@ -1165,7 +1269,7 @@ function btnLayout() {
 }
 function hitBtn(px, py) {
   const L = btnLayout();
-  for (const k in L) { if (k === 'night' && (!W || W.phase !== 'day')) continue; if (k === 'bench' && (!P || !nearBench())) continue; const b = L[k]; if (Math.hypot(px - b.x, py - b.y) < b.r * 1.15) return k; }
+  for (const k in L) { if (k === 'night' && (!W || W.phase !== 'day')) continue; if (k === 'bench' && (!P || !(nearBench() || gateAhead()))) continue; const b = L[k]; if (Math.hypot(px - b.x, py - b.y) < b.r * 1.15) return k; }
   return null;
 }
 cv.addEventListener('pointerdown', e => {
@@ -1189,7 +1293,7 @@ cv.addEventListener('pointerdown', e => {
   else if (b === 'trap') { build('trap'); role = 'btn'; }
   else if (b === 'night') { beginNight(); role = 'btn'; }
   else if (b === 'swap') { nextWeapon(1); role = 'btn'; }
-  else if (b === 'bench') { useBench(); role = 'btn'; }
+  else if (b === 'bench') { interact(); role = 'btn'; }
   else if (b === 'fire') { role = 'fire'; fire(); }
   else if (px < CW * 0.45 && stick.id === null) { role = 'move'; stick.id = e.pointerId; stick.ox = px; stick.oy = py; stick.x = px; stick.y = py; }
   else role = 'look';
@@ -1263,7 +1367,14 @@ function setState(s) {
   if (s === 'title') updateBest();
 }
 function resume() { setState('play'); requestLock(); }
-function updateBest() { $('best').textContent = (best.wave || best.kills) ? `최고 기록: 밤 ${best.wave}번 생존 · 처치 ${best.kills}` : ''; }
+function updateBest() {
+  $('mapSel').innerHTML = MAPDEFS.map((m, i) => { const b = bestOf(m.id); return `<button class="mapc${i === mapIdx ? ' on' : ''}" data-map="${i}"><div class="n">${m.name}</div><div class="d">${m.desc}</div><div class="r">${b.wave || b.kills ? `최고: 밤 ${b.wave}번 · 처치 ${b.kills}` : '기록 없음'}</div></button>`; }).join('');
+  $('best').textContent = '';
+}
+document.getElementById('mapSel').addEventListener('click', e => {
+  const b = e.target.closest('.mapc'); if (!b) return;
+  mapIdx = +b.dataset.map; store('ashzone.map', mapIdx); loadMap(mapIdx); updateBest();
+});
 $('btnStart').onclick = () => { tryFullscreen(); initAudio(); newGame(); setState('play'); requestLock(); };
 $('btnResume').onclick = () => { initAudio(); resume(); };
 $('btnQuit').onclick = () => { setState('title'); attract(); };
@@ -1275,10 +1386,11 @@ for (const id of ['sens1', 'sens2']) {
 }
 function gameOver() {
   const survived = W.phase === 'dawn' ? W.day : W.day - 1;
+  let best = bestOf(MAPDEF.id);
   const isBest = survived > best.wave || (survived === best.wave && stats.kills > best.kills);
-  if (isBest) { best = { wave: survived, kills: stats.kills }; store('ashzone.best', best); }
+  if (isBest) { best = { wave: survived, kills: stats.kills }; store('ashzone.best.' + MAPDEF.id, best); }
   const acc = stats.shots ? Math.round(stats.hits / stats.shots * 100) : 0;
-  $('overStats').innerHTML = `버틴 밤 <b>${survived}</b> (${W.day}일째 ${{ day: '낮', dusk: '해 질 녘', night: '밤', dawn: '새벽' }[W.phase]}에 쓰러짐)<br>처치 <b>${stats.kills}</b> · 점수 <b>${stats.score}</b> · 명중률 ${acc}%` +
+  $('overStats').innerHTML = `${MAPDEF.name} · 버틴 밤 <b>${survived}</b> (${W.day}일째 ${{ day: '낮', dusk: '해 질 녘', night: '밤', dawn: '새벽' }[W.phase]}에 쓰러짐)<br>처치 <b>${stats.kills}</b> · 점수 <b>${stats.score}</b> · 명중률 ${acc}%` +
     (isBest ? '<br><b>새 최고 기록!</b>' : `<br><span style="opacity:.7">최고 기록: 밤 ${best.wave}번 생존 · 처치 ${best.kills}</span>`);
   setState('over');
 }
@@ -1451,7 +1563,7 @@ function updateEnemies(dt) {
         if (nx < 0 || ny < 0 || nx >= MW || ny >= MH) continue;
         const ni = ny * MW + nx;
         const gv = grid[ni];
-        if ((gv && gv < 5) || flow[ni] < 0) continue;
+        if ((gv && gv !== 5 && gv !== 6) || flow[ni] < 0) continue;
         if (ox && oy && (gv || grid[cy * MW + nx] || grid[ny * MW + cx])) continue;
         const v = flow[ni] + (ox && oy ? 0.4 : 0);
         if (v < bestV) { bestV = v; bx = nx; by = ny; }
@@ -1549,15 +1661,26 @@ function render3D() {
     const cx = 2 * x / Wd - 1, ang = cam.a + Math.atan(cx * planeLen);
     let sx = Math.floor(ang / TAU * SW) % SW; if (sx < 0) sx += SW; colSky[x] = sx;
   }
-  const skyTop = H * 0.6;
-  for (let y = 0; y < hz && y < H; y++) {
-    let sy = Math.floor(SH - 1 - (hz - y) / skyTop * SH); if (sy < 0) sy = 0;
-    const row = y * Wd, srow = sy * SW;
-    for (let x = 0; x < Wd; x++) b[row + x] = SP[srow + colSky[x]];
+  const r0x = dX - pX, r0y = dY - pY, r1x = dX + pX, r1y = dY + pY;
+  if (MAPDEF.indoor) {
+    const CP = CEIL.px;
+    for (let y = 0; y < hz && y < H; y++) {
+      const p = hz - y, rd = projDist * 0.5 / p;
+      const stX = rd * (r1x - r0x) / Wd, stY = rd * (r1y - r0y) / Wd;
+      let fx = cam.x + rd * r0x, fy = cam.y + rd * r0y;
+      const s = fogS(rd) * 0.85, row = y * Wd;
+      for (let x = 0; x < Wd; x++) { b[row + x] = shade(CP[((fy * 64) & 63) * 64 + ((fx * 64) & 63)], s); fx += stX; fy += stY; }
+    }
+  } else {
+    const skyTop = H * 0.6;
+    for (let y = 0; y < hz && y < H; y++) {
+      let sy = Math.floor(SH - 1 - (hz - y) / skyTop * SH); if (sy < 0) sy = 0;
+      const row = y * Wd, srow = sy * SW;
+      for (let x = 0; x < Wd; x++) b[row + x] = SP[srow + colSky[x]];
+    }
   }
   // 바닥
-  const FP = FLOOR.px;
-  const r0x = dX - pX, r0y = dY - pY, r1x = dX + pX, r1y = dY + pY;
+  const FP = CUR_FLOOR.px;
   for (let y = Math.max(hz + 1, 0); y < H; y++) {
     const p = y - hz, rd = projDist * 0.5 / p;
     const stX = rd * (r1x - r0x) / Wd, stY = rd * (r1y - r0y) / Wd;
@@ -1832,6 +1955,12 @@ function drawHUD() {
   if (P.reloadT > 0) text('재장전 중…', CW / 2, CH / 2 + 50 * u, 18 * u, '#f0d090', 'center', 600);
   else if ((P.cur === 0 && P.mag === 0) || (P.cur === 2 && P.rmag === 0 && P.ammo.rifle > 0)) text('R 재장전', CW / 2, CH / 2 + 50 * u, 18 * u, '#ff8060', 'center', 600);
   if (!isTouch) { let wx = ax; for (let i = WEAPONS.length - 1; i >= 0; i--) { if (!P.own[i]) continue; text(String(i + 1), wx, ay + 44 * u, 14 * u, i === P.cur ? '#ffd080' : 'rgba(220,210,190,.45)', 'right', 700); wx -= 20 * u; } }
+  const gz = !nearBench() && !P.dead ? gateAhead() : 0;
+  if (gz) {
+    const day = W.phase === 'day';
+    text(day ? `${isTouch ? '문 열기 버튼' : 'E'}: 봉쇄문 열기 (고철 ${GATE_COST[gz]}) → 구역 ${gz}` : '봉쇄문은 낮에만 열 수 있다', CW / 2, CH / 2 + 84 * u, 18 * u, day ? (P.scrap >= GATE_COST[gz] ? '#ffd890' : 'rgba(255,200,160,.7)') : 'rgba(230,200,180,.6)', 'center', 600);
+    text(`새 구역엔 보급품이 있지만 놈들이 들어오는 길도 늘어난다 · ${GATE_AUTO[gz]}일째 아침엔 저절로 무너진다`, CW / 2, CH / 2 + 110 * u, 14 * u, 'rgba(230,220,200,.65)', 'center', 500);
+  }
   if (nearBench() && !P.dead) text(W.phase === 'day' ? (isTouch ? '작업대 버튼으로 무기 구입·강화' : 'E 작업대 열기 (무기 구입·강화)') : '작업대는 낮에만 쓸 수 있다', CW / 2, CH / 2 + 84 * u, 18 * u, W.phase === 'day' ? '#ffd890' : 'rgba(230,200,180,.6)', 'center', 600);
   const boss = enemies.find(e => e.kind === 'boss' && !e.dead);
   if (boss) {
@@ -1868,8 +1997,8 @@ function drawHUD() {
   const tsec = Math.max(0, Math.ceil(W.t)), mmss = `${Math.floor(tsec / 60)}:${String(tsec % 60).padStart(2, '0')}`;
   const info = W.phase === 'day' ? `밤까지 ${mmss}${isTouch ? '' : ' · N 바로 시작'}` : W.phase === 'night' ? `남은 적 ${alive + W.toSpawn}` : '';
   text(info, 30 * u, 68 * u, 17 * u, '#e0d6c4', 'left', 500);
-  text(`처치 ${stats.kills} · 점수 ${stats.score}`, 30 * u, 94 * u, 15 * u, '#b8ad98', 'left', 500);
-  if (showMap) drawMinimap(30 * u, 116 * u, 5.2 * u);
+  text(`처치 ${stats.kills} · 점수 ${stats.score} · 구역 ${W.open.filter(Boolean).length}/3`, 30 * u, 94 * u, 15 * u, '#b8ad98', 'left', 500);
+  if (showMap) drawMinimap(30 * u, 116 * u, 4.4 * u);
   // 중앙 메시지
   for (const m of msgs) {
     const a = Math.min(1, m.t * 3, (m.dur - m.t) * 2);
@@ -1889,7 +2018,7 @@ function drawHUD() {
 }
 function drawMinimap(x0, y0, c) {
   ctx.fillStyle = 'rgba(0,0,0,.45)'; ctx.fillRect(x0 - 4, y0 - 4, MW * c + 8, MH * c + 8);
-  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) { const g = grid[y * MW + x]; if (g) { ctx.fillStyle = g >= 5 ? (g === 6 ? '#8a4a20' : '#b87a3a') : 'rgba(150,140,130,.55)'; ctx.fillRect(x0 + x * c, y0 + y * c, c, c); } }
+  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) { const i = y * MW + x, g = grid[i]; if (g) { ctx.fillStyle = g === 7 ? '#e0b020' : g === 5 ? '#b87a3a' : g === 6 ? '#8a4a20' : 'rgba(150,140,130,.55)'; ctx.fillRect(x0 + x * c, y0 + y * c, c, c); } else if (zoneOf[i] > 1 && !W.open[zoneOf[i]]) { ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(x0 + x * c, y0 + y * c, c, c); } }
   for (const t of traps) { ctx.strokeStyle = '#c0c4ca'; ctx.lineWidth = 1; ctx.strokeRect(x0 + t.x * c - c * 0.35, y0 + t.y * c - c * 0.35, c * 0.7, c * 0.7); }
   const PC = { medkit: '#e04040', crate: '#e0b040', scrap: '#b0b4ba', shells: '#70e070', ammo: '#70e070', shotgun: '#70e070' };
   for (const p of pickups) { ctx.fillStyle = PC[p.type] || '#70e070'; ctx.fillRect(x0 + p.x * c - c * 0.4, y0 + p.y * c - c * 0.4, c * 0.8, c * 0.8); }
@@ -1920,7 +2049,7 @@ function drawTouchUI() {
   ctx.globalAlpha = rb.ok ? 1 : 0.45; circ(L.bar, rb.repair ? '수리' : '벽', false, 17); ctx.globalAlpha = 1;
   ctx.globalAlpha = rt.ok ? 1 : 0.45; circ(L.trap, '함정', false, 15); ctx.globalAlpha = 1;
   if (W.phase === 'day') circ(L.night, '밤', false, 16);
-  if (nearBench()) { ctx.globalAlpha = W.phase === 'day' ? 1 : 0.45; circ(L.bench, '작업대', false, 15); ctx.globalAlpha = 1; }
+  if (nearBench() || gateAhead()) { ctx.globalAlpha = W.phase === 'day' ? 1 : 0.45; circ(L.bench, nearBench() ? '작업대' : '문 열기', false, 15); ctx.globalAlpha = 1; }
   if (stick.id !== null) {
     const R = 80 * U; let dx = stick.x - stick.ox, dy = stick.y - stick.oy; const l = Math.hypot(dx, dy);
     if (l > R) { dx = dx / l * R; dy = dy / l * R; }
@@ -1951,7 +2080,10 @@ function frame(now) {
     cam.flash = (P.flash > 0 ? 0.9 : 0) + (P.flameT > 0 ? 0.35 : 0) + (P.boom > 0 ? P.boom * 4 : 0);
     cam.day = W.phase === 'day' || W.phase === 'dusk';
   }
-  if (cam.day) { cam.light = 1.15; cam.fogK = 0.055; FR = 62; FG = 54; FB = 50; }
+  if (MAPDEF.indoor) {
+    if (cam.day) { cam.light = 1.08; cam.fogK = 0.07; FR = 22; FG = 20; FB = 17; }
+    else { if (state !== 'title' && P) cam.light = 0.95; cam.fogK = 0.095; FR = 7; FG = 6; FB = 8; }
+  } else if (cam.day) { cam.light = 1.15; cam.fogK = 0.055; FR = 62; FG = 54; FB = 50; }
   else { if (state !== 'title' && P) cam.light = 1; cam.fogK = 0.085; FR = 13; FG = 10; FB = 14; }
   render3D();
   if (state !== 'title' && P) { drawWeapon(); drawHUD(); }
@@ -1982,7 +2114,7 @@ function tryFullscreen() {
 }
 
 // 테스트용 훅
-window.__AZ = { get state() { return state; }, get P() { return P; }, get W() { return W; }, get enemies() { return enemies; }, get pickups() { return pickups; }, get stats() { return stats; }, get traps() { return traps; }, get shots() { return shots; }, newGame, setState, startWave, beginNight, build, buildCheck, spawnEnemy, barHp, isBar, flow, MW, MH, grid, START, SPAWNS };
+window.__AZ = { get state() { return state; }, get P() { return P; }, get W() { return W; }, get enemies() { return enemies; }, get pickups() { return pickups; }, get stats() { return stats; }, get traps() { return traps; }, get shots() { return shots; }, newGame, setState, startWave, beginNight, build, buildCheck, spawnEnemy, barHp, isBar, flow, MW, MH, grid, START, SPAWNS, loadMap, openZone, gateAhead, interact, zoneOf, gateZone, MAPDEFS, WB, get mapIdx() { return mapIdx; }, get MAPDEF() { return MAPDEF; } };
 </script>
 </body>
 </html>

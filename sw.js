@@ -1,5 +1,5 @@
 // 잿빛 구역 서비스 워커: 페이지는 네트워크 우선(최신 버전), 나머지는 캐시 우선
-const CACHE = 'ashzone-v0.4';
+const CACHE = 'ashzone-v0.5';
 const ASSETS = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
